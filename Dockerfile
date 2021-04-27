@@ -5,7 +5,7 @@ FROM arm32v7/python:3.8-alpine3.12
 
 COPY qemu-arm-static /usr/bin
 
-ENV LANG=C.UTF-8
+#ENV LANG=C.UTF-8
 
 ARG OPENCV_VERSION=4.2.0
 
@@ -76,11 +76,11 @@ RUN cd /tmp && \
         -D PYTHON_EXECUTABLE=`which python3` \
         -D PYTHON3_EXECUTABLE=`which python3` \
         -D OPENCV_GENERATE_PKGCONFIG=ON \
-        -D BUILD_opencv_python3=YES ..
+        -D BUILD_opencv_python3=YES .. && \
 
 
-# Build
-RUN make -j`grep -c '^processor' /proc/cpuinfo` && \
+    # Build
+    make -j`grep -c '^processor' /proc/cpuinfo` && \
     make install 
 
 # Update PythonPath
