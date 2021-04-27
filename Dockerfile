@@ -3,6 +3,8 @@
 ################################################################################
 FROM arm32v7/python:3.8-alpine3.12
 
+COPY qemu-arm-static /usr/bin
+
 ENV LANG=C.UTF-8
 
 ARG OPENCV_VERSION=4.2.0
