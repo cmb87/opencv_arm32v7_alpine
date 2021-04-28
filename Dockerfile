@@ -1,11 +1,11 @@
 ################################################################################
 ##  Dockerfile to build minimal OpenCV img with Python3.7 and Video support   ##
 ################################################################################
-FROM arm32v7/python:3.8-alpine3.12
+FROM arm32v7/python:3.8.9-alpine3.13
 
 COPY qemu-arm-static /usr/bin
 
-#ENV LANG=C.UTF-8
+ENV LANG=C.UTF-8
 
 ARG OPENCV_VERSION=4.2.0
 
@@ -30,15 +30,15 @@ RUN apk add --update --no-cache \
     libgphoto2 libgphoto2-dev && \
     apk add --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
             --update --no-cache libtbb libtbb-dev && \
-    apk upgrade --repository http://dl-cdn.alpinelinux.org/alpine/edge/main musl
-
-
-# Install Numpy
-RUN apk add g++  && \
-    pip install numpy
-
-# Download OpenCV source
-RUN cd /tmp && \
+    apk upgrade --repository http://dl-cdn.alpinelinux.org/alpine/edge/main musl && \
+#
+#
+    # Install Numpy
+    apk add g++  && \
+    pip install numpy && \
+#
+    # Download OpenCV source
+    cd /tmp && \
     wget https://github.com/opencv/opencv/archive/$OPENCV_VERSION.tar.gz && \
     tar -xvzf $OPENCV_VERSION.tar.gz && \
     rm -vrf $OPENCV_VERSION.tar.gz && \
@@ -52,7 +52,7 @@ RUN cd /tmp && \
         -D CMAKE_CXX_COMPILER=/usr/bin/clang++ \
         -D CMAKE_INSTALL_PREFIX=/usr \
         # No examples
-        -D INSTALL_PYTHON_EXAMPLES=NO \
+        -D INSTALL_PYTHON_EXAMPLES=YES \
         -D INSTALL_C_EXAMPLES=NO \
         # Support
         -D WITH_IPP=NO \
@@ -77,19 +77,18 @@ RUN cd /tmp && \
         -D PYTHON3_EXECUTABLE=`which python3` \
         -D OPENCV_GENERATE_PKGCONFIG=ON \
         -D BUILD_opencv_python3=YES .. && \
-
-
+#
     # Build
     make -j`grep -c '^processor' /proc/cpuinfo` && \
-    make install 
-
-# Update PythonPath
-ENV PYTHONPATH "${PYTHONPATH}:/usr/lib/python3.8/site-packages/cv2/python-3.8"
-
-# Cleanup
-RUN cd / && rm -vrf /tmp/opencv-$OPENCV_VERSION && \
+    make install && \
+#
+    # Cleanup
+    cd / && rm -vrf /tmp/opencv-$OPENCV_VERSION && \
     apk del --purge g++ build-base clang clang-dev cmake pkgconf wget openblas-dev \
                     openexr-dev gstreamer-dev gst-plugins-base-dev libgphoto2-dev \
                     libtbb-dev libjpeg-turbo-dev libpng-dev tiff-dev \
                     ffmpeg-dev libavc1394-dev python3-dev && \
     rm -vrf /var/cache/apk/*
+
+# Update PythonPath
+ENV PYTHONPATH "${PYTHONPATH}:/usr/lib/python3.8/site-packages/cv2/python-3.8"
